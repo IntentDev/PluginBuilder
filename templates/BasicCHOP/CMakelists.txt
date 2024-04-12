@@ -15,10 +15,6 @@ if(NOT DEFINED PLUGIN_BUILDER_DIR)
     message(FATAL_ERROR "PLUGIN_BUILDER_DIR is not defined")
 endif()
 
-# if(NOT DEFINED PLUGIN_BUILDER_DIR)
-#     set(PLUGIN_BUILDER_DIR "D:/TD/PluginBuilder")
-# endif()
-
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
 set(PRINT_SOURCE_FILES On)
 if(PRINT_SOURCE_FILES)
@@ -33,7 +29,6 @@ message(STATUS "INCLUDE_DIR: ${INCLUDE_DIR}")
 
 # Collect all source files and exclude gtest files.
 file(GLOB_RECURSE PROJ_SOURCE_FILES "${SOURCE_DIR}/*.cpp" "${SOURCE_DIR}/*.c" "${SOURCE_DIR}/*.cu" "${SOURCE_DIR}/*.h")
-
 
 add_library(PLUGIN_NAME SHARED ${PROJ_SOURCE_FILES})
 target_include_directories(PLUGIN_NAME PRIVATE ${SOURCE_DIR} ${INCLUDE_DIR}) 

@@ -5,16 +5,7 @@ import subprocess
 import threading
 import queue
 
-cmds = {
-	'build_cmake': 'cmake -B build -G Ninja',
-	'build_ninja': 'ninja -C build',
-
-	# 'build': 'ninja -C {build_dir} {target}',
-	# 'clean': 'ninja -C {build_dir} clean',
-	# 'install': 'ninja -C {build_dir} install',
-	# 'configure': 'cmake -S {source_dir} -B {build_dir} -G "Ninja" -DCMAKE_BUILD_TYPE={build_type} -DCMAKE_INSTALL_PREFIX={install_dir}',
-	# 'vcvarsall': 'cmd.exe /K {vcvarsall} x64'
-}
+import CMakeBlocks
 
 class PluginBuilderExt:
 	"""
@@ -23,8 +14,9 @@ class PluginBuilderExt:
 	"""
 	def __init__(self, ownerComp):
 		self.ownerComp = ownerComp
+		self.builderComp = ownerComp.op('builder')
 		self.parent = ownerComp.parent()
-		self.settingsDat = ownerComp.op('settings')
+		self.settingsDat = self.builderComp.op('settings')
 
 		self.config = configparser.ConfigParser()
 		self.config.read_string(self.settingsDat.text)
@@ -37,27 +29,33 @@ class PluginBuilderExt:
 		self.on_par_pulse_map = {
 			'Createplugin': self.create_plugin,
 			'Buildplugin': self.build_plugin,
+			'Compileplugin': self.compile_plugin,
 		}
 
-		# self.create_plugin_map = {
-		# 	'CHOP': {'func': self.create_chop_plugin, 'replace': 'CPlusPlusCHOPExample'},
-		# 	'TOP':  {'func': self.create_top_plugin, 'replace': 'CPlusPlusTOPExample'},
-		# 	'DAT':  {'func': self.create_dat_plugin, 'replace': 'CPlusPlusDATExample'},
-		# 	'SOP':  {'func': self.create_sop_plugin, 'replace': 'CPlusPlusSOPExample'},
-		# }
-  
 		self.template_map = {
-			'BasicCHOP': 		   {'type': 'CHOP', 'replace': 'BasicCHOP', 		  'func': self.create_chop_plugin},
-			'CHOPWithPythonClass': {'type': 'CHOP', 'replace': 'CHOPWithPythonClass', 'func': self.create_chop_plugin},
-			'CPUMemoryTOP': 	   {'type': 'TOP',  'replace': 'CPUMemoryTOP', 		  'func': self.create_top_plugin},
-			'CudaTOP': 			   {'type': 'TOP',  'replace': 'CudaTOP', 			  'func': self.create_top_plugin},
-			'BasicDAT': 		   {'type': 'DAT',  'replace': 'BasicDAT', 			  'func': self.create_dat_plugin},
-			'SimpleShapesSOP': 	   {'type': 'SOP',  'replace': 'SimpleShapesSOP', 	  'func': self.create_sop_plugin},
+			'BasicCHOP': 		   {'type': 'CHOP', 'replace': 'BasicCHOP', 		  'assemble_cmake': self.assemble_cmake_text_basic},
+			'CHOPWithPythonClass': {'type': 'CHOP', 'replace': 'CHOPWithPythonClass', 'assemble_cmake': self.assemble_cmake_text_basic},
+			'CPUMemoryTOP': 	   {'type': 'TOP',  'replace': 'CPUMemoryTOP', 		  'assemble_cmake': self.assemble_cmake_text_basic},
+			'CudaTOP': 			   {'type': 'TOP',  'replace': 'CudaTOP', 			  'assemble_cmake': self.assemble_cmake_text_cuda},
+			'BasicDAT': 		   {'type': 'DAT',  'replace': 'BasicDAT', 			  'assemble_cmake': self.assemble_cmake_text_basic},
+			'SimpleShapesSOP': 	   {'type': 'SOP',  'replace': 'SimpleShapesSOP', 	  'assemble_cmake': self.assemble_cmake_text_basic},
+		}
+
+		self.loader_op_map = {
+			'CHOP': {'loader': cplusplusCHOP, 'in': inCHOP, 'out': outCHOP},
+			'TOP':  {'loader': cplusplusTOP,  'in': inTOP,  'out': outTOP},
+			'DAT':  {'loader': cplusplusDAT,  'in': inDAT,  'out': outDAT},
+			'SOP':  {'loader': cplusplusSOP,  'in': inSOP,  'out': outSOP},
 		}
 
 		self.plugin_projects_dir = 'PluginProjects'
+		self.plugins_dir = 'Plugins'
 
-		self.start_subprocess(self.cmake_build_cmd)
+		if self.start_subprocess():
+			self.build_plugin()
+
+		self.loader_op = self.ownerComp.op('loader')
+
 
 	def __del__(self):
 		"""Destructor that calls the CloseSubprocess method."""
@@ -77,7 +75,9 @@ class PluginBuilderExt:
 
 	@property
 	def cmake_build_cmd(self):
-		cmd = f"cmake -B build -G Ninja -DPLUGIN_BUILDER_DIR={self.PluginBuilderDir} -DCMAKE_BUILD_TYPE=Release"
+		config = self.ownerComp.par.Buildconfig.eval()
+
+		cmd = f"cmake -B build -G Ninja -DPLUGIN_BUILDER_DIR={self.PluginBuilderDir} -DPLUGIN_DIR={self.plugin_dir} -DCMAKE_BUILD_TYPE={config}"
 		return cmd
 	
 	@property
@@ -93,6 +93,10 @@ class PluginBuilderExt:
 	@property
 	def working_dir(self):
 		return f"{self.plugin_projects_dir}/{self.ownerComp.par.Pluginname.eval()}"
+	
+	@property
+	def plugin_dir(self):
+		return f"{self.plugins_dir}/{self.ownerComp.par.Pluginname.eval()}"
 
 	@property
 	def PluginBuilderDir(self):
@@ -129,9 +133,8 @@ class PluginBuilderExt:
 		if name in [o.name for o in self.parent.findChildren()]:
 			raise ValueError(f"operator {name} already exists.")
 		
-		if not os.path.exists(self.plugin_projects_dir):
-			os.makedirs(self.plugin_projects_dir)
-
+		os.makedirs(self.plugin_projects_dir, exist_ok=True)
+		
 		if os.path.exists(self.working_dir):
 			raise FileExistsError(f"Directory {self.working_dir} already exists. Rename plugin, change working directory or delete existing directory.")
 		
@@ -144,8 +147,9 @@ class PluginBuilderExt:
 			with open(f"{self.template_dir}/{template_name}/CMakeLists.txt", 'r') as f:
 				cmake_text = f.read()
 			
+			cmake_text = template_info.get('assemble_cmake')()
 			cmake_text = cmake_text.replace('PLUGIN_NAME', self.ownerComp.par.Pluginname.eval())
-			
+
 			with open(f"{self.working_dir}/CMakeLists.txt", 'w') as f:
 				f.write(cmake_text)
 
@@ -162,25 +166,53 @@ class PluginBuilderExt:
 				with open(f"{self.working_dir}/source/{file_name}", 'w') as f:
 					f.write(text)
 
-			self.start_subprocess()
-			self.build_plugin()
+			os.makedirs(self.plugins_dir, exist_ok=True)
+			os.makedirs(f"{self.plugin_dir}", exist_ok=True)
+
+			if self.start_subprocess():
+				self.build_plugin()
+				self.compile_plugin()
 		
 		except Exception as e:
 			shutil.rmtree(self.working_dir)
 			raise e
 		
-	# not used...
-	def create_chop_plugin(self):
+		self.create_plugin_loader(template_info.get('type'))
+		
+	def create_plugin_loader(self, plugin_type):
+		"""Creates a new plugin loader."""
+
+		children = self.ownerComp.findChildren(name='^builder', depth=1)
+		for child in children:
+			if child.name != self.ownerComp.name:
+				child.destroy()
+
+		loader_op_info = self.loader_op_map.get(plugin_type)
+
+		in_op = self.ownerComp.create(loader_op_info.get('in'), 'in1')
+		self.loader_op = self.ownerComp.create(loader_op_info.get('loader'), 'loader')
+		out_op = self.ownerComp.create(loader_op_info.get('out'), 'out1')
+
+		in_op.nodeX = -200
+		self.loader_op.nodeX = 0
+		out_op.nodeX = 200
+
+		in_op.outputConnectors[0].connect(self.loader_op.inputConnectors[0])
+		self.loader_op.outputConnectors[0].connect(out_op.inputConnectors[0])
+
+		self.loader_op.par.unloadplugin = True
+		self.loader_op.par.plugin = f"{self.plugin_dir}/{self.ownerComp.par.Pluginname.eval()}.dll"
+		self.loader_op = self.loader_op
+
 		pass
 
-	def create_top_plugin(self):
-		pass
-
-	def create_dat_plugin(self):
-		pass
-
-	def create_sop_plugin(self):
-		pass
+	def assemble_cmake_text_basic(self):
+		cmake_text = CMakeBlocks.start_block + CMakeBlocks.project_block + CMakeBlocks.core_block
+		return cmake_text
+	
+	def assemble_cmake_text_cuda(self):
+		cmake_text = CMakeBlocks.start_block + CMakeBlocks.cuda_project_block + CMakeBlocks.core_block + CMakeBlocks.cuda_block
+		return cmake_text
 
 	def build_plugin(self):
 		"""Builds the plugin project."""
@@ -191,13 +223,15 @@ class PluginBuilderExt:
 		
 		self.SendCommand(self.cmake_build_cmd)
 
+	def compile_plugin(self):
 		print(f"Compiling {self.ownerComp.par.Pluginname.eval()}...")
 		self.SendCommand(self.cmake_build_plugin_cmd)
 
+	def BuildAndCompile(self):
+		self.build_plugin()
+		self.compile_plugin()
+
 		
-
-
-
 	############## Par Callbacks ##################################################################
 	
 	def OnParValueChange(self, par, prev):
@@ -214,6 +248,33 @@ class PluginBuilderExt:
 		self.start_subprocess()
 
 
+	############## File Callbacks #################################################################
+ 
+	def OnPluginUpdate(self):
+		"""copy the plugin to the plugin directory"""
+
+		if self.loader_op is None:
+			return
+		
+		self.loader_op.par.unloadplugin = True
+		self.loader_op.cook(force=True)
+
+		build_dir = f"{self.working_dir}/build"
+		plugin_name = self.ownerComp.par.Pluginname.eval()
+		build_path = f"{build_dir}/{plugin_name}.dll"
+		plugin_path = f"{self.plugin_dir}/{plugin_name}.dll"
+
+		if os.path.exists(build_path):
+			# copy the plugin to the plugin directory
+			shutil.copyfile(build_path, plugin_path)
+
+		self.loader_op.par.plugin = plugin_path
+		self.loader_op.par.unloadplugin = False
+
+		
+
+
+
 	############## Subprocess #####################################################################
 
 	def start_subprocess(self, append_cmd=None):
@@ -221,7 +282,7 @@ class PluginBuilderExt:
 
 		# check if directory exists
 		if not os.path.exists(self.working_dir):
-			return
+			return False
 
 		mode = self.ownerComp.par.Outputto.eval()
 
@@ -259,6 +320,8 @@ class PluginBuilderExt:
 			self.output_thread.start()
 
 			run("args[0].PrintOutput()", self.ownerComp, delayFrames=30)
+
+		return True
 
 	def _output_reader(self):
 		"""Reads output from the subprocess and stores it in a queue."""
