@@ -19,7 +19,7 @@ using namespace TD;
 /*
 
 This example file implements a class that does 2 different things depending on
-if a CHOP is connected to the CPlusPlus CHOPs input or not.
+if a BasicCHOP is connected to the CPlusPlus CHOPs input or not.
 The example is timesliced, which is the more complex way of working.
 
 If an input is connected the node will output the same number of channels as the
@@ -33,11 +33,11 @@ If no input is connected then the node will output a smooth sine wave at 120hz.
 
 
 // To get more help about these functions, look at CHOP_CPlusPlusBase.h
-class CPlusPlusCHOPExample : public CHOP_CPlusPlusBase
+class BasicCHOP : public CHOP_CPlusPlusBase
 {
 public:
-	CPlusPlusCHOPExample(const OP_NodeInfo* info);
-	virtual ~CPlusPlusCHOPExample();
+	BasicCHOP(const OP_NodeInfo* info);
+	virtual ~BasicCHOP();
 
 	virtual void		getGeneralInfo(CHOP_GeneralInfo*, const OP_Inputs*, void* ) override;
 	virtual bool		getOutputInfo(CHOP_OutputInfo*, const OP_Inputs*, void*) override;
@@ -71,7 +71,7 @@ private:
 	const OP_NodeInfo*	myNodeInfo;
 
 	// In this example this value will be incremented each time the execute()
-	// function is called, then passes back to the CHOP 
+	// function is called, then passes back to the BasicCHOP 
 	int32_t				myExecuteCount;
 
 

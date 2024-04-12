@@ -21,11 +21,11 @@ using namespace TD;
  To get more help about these functions, look at DAT_CPlusPlusBase.h
 */
 
-class CPlusPlusDATExample : public DAT_CPlusPlusBase
+class BasicDAT : public DAT_CPlusPlusBase
 {
 public:
-	CPlusPlusDATExample(const OP_NodeInfo* info);
-	virtual ~CPlusPlusDATExample();
+	BasicDAT(const OP_NodeInfo* info);
+	virtual ~BasicDAT();
 
 	virtual void		getGeneralInfo(DAT_GeneralInfo*, const OP_Inputs*, void* reserved1) override;
 

@@ -12,7 +12,7 @@
 * prior written permission from Derivative.
 */
 
-#include "CPlusPlusDATExample.h"
+#include "BasicDAT.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -61,7 +61,7 @@ CreateDATInstance(const OP_NodeInfo* info)
 {
 	// Return a new instance of your class every time this is called.
 	// It will be called once per DAT that is using the .dll
-	return new CPlusPlusDATExample(info);
+	return new BasicDAT(info);
 }
 
 DLLEXPORT
@@ -71,12 +71,12 @@ DestroyDATInstance(DAT_CPlusPlusBase* instance)
 	// Delete the instance here, this will be called when
 	// Touch is shutting down, when the DAT using that instance is deleted, or
 	// if the DAT loads a different DLL
-	delete (CPlusPlusDATExample*)instance;
+	delete (BasicDAT*)instance;
 }
 
 };
 
-CPlusPlusDATExample::CPlusPlusDATExample(const OP_NodeInfo* info) : myNodeInfo(info)
+BasicDAT::BasicDAT(const OP_NodeInfo* info) : myNodeInfo(info)
 {
 	myExecuteCount = 0;
 	myOffset = 0.0;
@@ -87,19 +87,19 @@ CPlusPlusDATExample::CPlusPlusDATExample(const OP_NodeInfo* info) : myNodeInfo(i
 	myChopChanVal = 0;
 }
 
-CPlusPlusDATExample::~CPlusPlusDATExample()
+BasicDAT::~BasicDAT()
 {
 }
 
 void
-CPlusPlusDATExample::getGeneralInfo(DAT_GeneralInfo* ginfo, const OP_Inputs* inputs, void* reserved1)
+BasicDAT::getGeneralInfo(DAT_GeneralInfo* ginfo, const OP_Inputs* inputs, void* reserved1)
 {
 	// This will cause the node to cook every frame
 	ginfo->cookEveryFrameIfAsked = false;
 }
 
 void
-CPlusPlusDATExample::makeTable(DAT_Output* output, int numRows, int numCols)
+BasicDAT::makeTable(DAT_Output* output, int numRows, int numCols)
 {
 	output->setOutputDataType(DAT_OutDataType::Table);
 	output->setTableSize(numRows, numCols);
@@ -122,14 +122,14 @@ CPlusPlusDATExample::makeTable(DAT_Output* output, int numRows, int numCols)
 }
 
 void
-CPlusPlusDATExample::makeText(DAT_Output* output)
+BasicDAT::makeText(DAT_Output* output)
 {
 	output->setOutputDataType(DAT_OutDataType::Text);
 	output->setText("This is some test data.");
 }
 
 void
-CPlusPlusDATExample::execute(DAT_Output* output,
+BasicDAT::execute(DAT_Output* output,
 							const OP_Inputs* inputs,
 							void* reserved)
 {
@@ -228,7 +228,7 @@ CPlusPlusDATExample::execute(DAT_Output* output,
 }
 
 int32_t
-CPlusPlusDATExample::getNumInfoCHOPChans(void* reserved1)
+BasicDAT::getNumInfoCHOPChans(void* reserved1)
 {
 	// We return the number of channel we want to output to any Info CHOP
 	// connected to the CHOP. In this example we are just going to send one channel.
@@ -236,7 +236,7 @@ CPlusPlusDATExample::getNumInfoCHOPChans(void* reserved1)
 }
 
 void
-CPlusPlusDATExample::getInfoCHOPChan(int32_t index,
+BasicDAT::getInfoCHOPChan(int32_t index,
 									OP_InfoCHOPChan* chan, void* reserved1)
 {
 	// This function will be called once for each channel we said we'd want to return
@@ -268,7 +268,7 @@ CPlusPlusDATExample::getInfoCHOPChan(int32_t index,
 }
 
 bool
-CPlusPlusDATExample::getInfoDATSize(OP_InfoDATSize* infoSize, void* reserved1)
+BasicDAT::getInfoDATSize(OP_InfoDATSize* infoSize, void* reserved1)
 {
 	infoSize->rows = 3;
 	infoSize->cols = 3;
@@ -279,7 +279,7 @@ CPlusPlusDATExample::getInfoDATSize(OP_InfoDATSize* infoSize, void* reserved1)
 }
 
 void
-CPlusPlusDATExample::getInfoDATEntries(int32_t index,
+BasicDAT::getInfoDATEntries(int32_t index,
 									int32_t nEntries,
 									OP_InfoDATEntries* entries,
 									void* reserved1)
@@ -345,7 +345,7 @@ CPlusPlusDATExample::getInfoDATEntries(int32_t index,
 }
 
 void
-CPlusPlusDATExample::setupParameters(OP_ParameterManager* manager, void* reserved1)
+BasicDAT::setupParameters(OP_ParameterManager* manager, void* reserved1)
 {
 	// CHOP
 	{
@@ -416,7 +416,7 @@ CPlusPlusDATExample::setupParameters(OP_ParameterManager* manager, void* reserve
 }
 
 void
-CPlusPlusDATExample::pulsePressed(const char* name, void* reserved1)
+BasicDAT::pulsePressed(const char* name, void* reserved1)
 {
 	if (!strcmp(name, "Reset"))
 	{

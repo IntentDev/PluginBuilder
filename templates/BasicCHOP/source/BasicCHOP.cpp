@@ -12,7 +12,7 @@
 * prior written permission from Derivative.
 */
 
-#include "CPlusPlusCHOPExample.h"
+#include "BasicCHOP.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -33,7 +33,7 @@ FillCHOPPluginInfo(CHOP_PluginInfo *info)
 	// Always set this to CHOPCPlusPlusAPIVersion.
 	info->apiVersion = CHOPCPlusPlusAPIVersion;
 
-	// The opType is the unique name for this CHOP. It must start with a 
+	// The opType is the unique name for this BasicCHOP. It must start with a 
 	// capital A-Z character, and all the following characters must lower case
 	// or numbers (a-z, 0-9)
 	info->customOPInfo.opType->setString("Customsignal");
@@ -45,7 +45,7 @@ FillCHOPPluginInfo(CHOP_PluginInfo *info)
 	info->customOPInfo.authorName->setString("Author Name");
 	info->customOPInfo.authorEmail->setString("email@email.com");
 
-	// This CHOP can work with 0 inputs
+	// This BasicCHOP can work with 0 inputs
 	info->customOPInfo.minInputs = 0;
 
 	// It can accept up to 1 input though, which changes it's behavior
@@ -57,8 +57,8 @@ CHOP_CPlusPlusBase*
 CreateCHOPInstance(const OP_NodeInfo* info)
 {
 	// Return a new instance of your class every time this is called.
-	// It will be called once per CHOP that is using the .dll
-	return new CPlusPlusCHOPExample(info);
+	// It will be called once per BasicCHOP that is using the .dll
+	return new BasicCHOP(info);
 }
 
 DLLEXPORT
@@ -66,42 +66,42 @@ void
 DestroyCHOPInstance(CHOP_CPlusPlusBase* instance)
 {
 	// Delete the instance here, this will be called when
-	// Touch is shutting down, when the CHOP using that instance is deleted, or
-	// if the CHOP loads a different DLL
-	delete (CPlusPlusCHOPExample*)instance;
+	// Touch is shutting down, when the BasicCHOP using that instance is deleted, or
+	// if the BasicCHOP loads a different DLL
+	delete (BasicCHOP*)instance;
 }
 
 };
 
 
-CPlusPlusCHOPExample::CPlusPlusCHOPExample(const OP_NodeInfo* info) : myNodeInfo(info)
+BasicCHOP::BasicCHOP(const OP_NodeInfo* info) : myNodeInfo(info)
 {
 	myExecuteCount = 0;
 	myOffset = 0.0;
 }
 
-CPlusPlusCHOPExample::~CPlusPlusCHOPExample()
+BasicCHOP::~BasicCHOP()
 {
 
 }
 
 void
-CPlusPlusCHOPExample::getGeneralInfo(CHOP_GeneralInfo* ginfo, const OP_Inputs* inputs, void* reserved1)
+BasicCHOP::getGeneralInfo(CHOP_GeneralInfo* ginfo, const OP_Inputs* inputs, void* reserved1)
 {
 	// This will cause the node to cook every frame
 	ginfo->cookEveryFrameIfAsked = true;
 
 	// Note: To disable timeslicing you'll need to turn this off, as well as ensure that
 	// getOutputInfo() returns true, and likely also set the info->numSamples to how many
-	// samples you want to generate for this CHOP. Otherwise it'll take on length of the
-	// input CHOP, which may be timesliced.
+	// samples you want to generate for this BasicCHOP. Otherwise it'll take on length of the
+	// input BasicCHOP, which may be timesliced.
 	ginfo->timeslice = true;
 
 	ginfo->inputMatchIndex = 0;
 }
 
 bool
-CPlusPlusCHOPExample::getOutputInfo(CHOP_OutputInfo* info, const OP_Inputs* inputs, void* reserved1)
+BasicCHOP::getOutputInfo(CHOP_OutputInfo* info, const OP_Inputs* inputs, void* reserved1)
 {
 	// If there is an input connected, we are going to match it's channel names etc
 	// otherwise we'll specify our own.
@@ -114,7 +114,7 @@ CPlusPlusCHOPExample::getOutputInfo(CHOP_OutputInfo* info, const OP_Inputs* inpu
 		info->numChannels = 1;
 
 		// Since we are outputting a timeslice, the system will dictate
-		// the numSamples and startIndex of the CHOP data
+		// the numSamples and startIndex of the BasicCHOP data
 		//info->numSamples = 1;
 		//info->startIndex = 0
 
@@ -125,13 +125,13 @@ CPlusPlusCHOPExample::getOutputInfo(CHOP_OutputInfo* info, const OP_Inputs* inpu
 }
 
 void
-CPlusPlusCHOPExample::getChannelName(int32_t index, OP_String *name, const OP_Inputs* inputs, void* reserved1)
+BasicCHOP::getChannelName(int32_t index, OP_String *name, const OP_Inputs* inputs, void* reserved1)
 {
 	name->setString("chan1");
 }
 
 void
-CPlusPlusCHOPExample::execute(CHOP_Output* output,
+BasicCHOP::execute(CHOP_Output* output,
 							  const OP_Inputs* inputs,
 							  void* reserved)
 {
@@ -143,7 +143,7 @@ CPlusPlusCHOPExample::execute(CHOP_Output* output,
 
 	if (inputs->getNumInputs() > 0)
 	{
-		// We know the first CHOP has the same number of channels
+		// We know the first BasicCHOP has the same number of channels
 		// because we returned false from getOutputInfo. 
 
 		inputs->enablePar("Speed", 0);	// not used
@@ -160,7 +160,7 @@ CPlusPlusCHOPExample::execute(CHOP_Output* output,
 				output->channels[i][j] = float(cinput->getChannelData(i)[ind] * scale);
 				ind++;
 
-				// Make sure we don't read past the end of the CHOP input
+				// Make sure we don't read past the end of the BasicCHOP input
 				ind = ind % cinput->numSamples;
 			}
 		}
@@ -225,15 +225,15 @@ CPlusPlusCHOPExample::execute(CHOP_Output* output,
 }
 
 int32_t
-CPlusPlusCHOPExample::getNumInfoCHOPChans(void * reserved1)
+BasicCHOP::getNumInfoCHOPChans(void * reserved1)
 {
-	// We return the number of channel we want to output to any Info CHOP
-	// connected to the CHOP. In this example we are just going to send one channel.
+	// We return the number of channel we want to output to any Info BasicCHOP
+	// connected to the BasicCHOP. In this example we are just going to send one channel.
 	return 2;
 }
 
 void
-CPlusPlusCHOPExample::getInfoCHOPChan(int32_t index,
+BasicCHOP::getInfoCHOPChan(int32_t index,
 										OP_InfoCHOPChan* chan,
 										void* reserved1)
 {
@@ -254,7 +254,7 @@ CPlusPlusCHOPExample::getInfoCHOPChan(int32_t index,
 }
 
 bool		
-CPlusPlusCHOPExample::getInfoDATSize(OP_InfoDATSize* infoSize, void* reserved1)
+BasicCHOP::getInfoDATSize(OP_InfoDATSize* infoSize, void* reserved1)
 {
 	infoSize->rows = 2;
 	infoSize->cols = 2;
@@ -265,7 +265,7 @@ CPlusPlusCHOPExample::getInfoDATSize(OP_InfoDATSize* infoSize, void* reserved1)
 }
 
 void
-CPlusPlusCHOPExample::getInfoDATEntries(int32_t index,
+BasicCHOP::getInfoDATEntries(int32_t index,
 										int32_t nEntries,
 										OP_InfoDATEntries* entries, 
 										void* reserved1)
@@ -302,7 +302,7 @@ CPlusPlusCHOPExample::getInfoDATEntries(int32_t index,
 }
 
 void
-CPlusPlusCHOPExample::buildDynamicMenu(const OP_Inputs* inputs, OP_BuildDynamicMenuInfo* info, void* reserved1)
+BasicCHOP::buildDynamicMenu(const OP_Inputs* inputs, OP_BuildDynamicMenuInfo* info, void* reserved1)
 {
 	if (!strcmp(info->name, "Shapemod"))
 	{
@@ -326,7 +326,7 @@ CPlusPlusCHOPExample::buildDynamicMenu(const OP_Inputs* inputs, OP_BuildDynamicM
 }
 
 void
-CPlusPlusCHOPExample::setupParameters(OP_ParameterManager* manager, void *reserved1)
+BasicCHOP::setupParameters(OP_ParameterManager* manager, void *reserved1)
 {
 	// speed
 	{
@@ -403,7 +403,7 @@ CPlusPlusCHOPExample::setupParameters(OP_ParameterManager* manager, void *reserv
 }
 
 void 
-CPlusPlusCHOPExample::pulsePressed(const char* name, void* reserved1)
+BasicCHOP::pulsePressed(const char* name, void* reserved1)
 {
 	if (!strcmp(name, "Reset"))
 	{
