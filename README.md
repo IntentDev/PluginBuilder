@@ -9,15 +9,17 @@ PluginBuilder is a development tool designed to accelerate the process of buildi
 - **CMake**: Installed and added to the system or user PATH.
 - **Ninja**: Installed and recognized in the system PATH.
 - **OS**: Windows only at this time.
+   ### Optional
+   - In order to build and compile plugins that depend on Cuda you'll need to install Cuda Toolkit. Currently TD uses [CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive) so that will be the easiest CUDA version to get working without requiring copying .dll's to the plugin or project path. 
 
 ## Installation
 
 1. **PluginBuilder**:
    Clone or download PluginBuilder from its repository.
 2. **Visual Studio**:
-   Ensure Visual Studio with C++ tools is installed ([Visual Studio](https://visualstudio.microsoft.com)).
+   Ensure Visual Studio with C++ tools is installed [Visual Studio](https://visualstudio.microsoft.com).
 3. **CMake**:
-   Install CMake if not already installed ([CMake Download](https://cmake.org/download)). Ensure it is added to your system path.
+   Install CMake if not already installed [CMake Download](https://cmake.org/download). Ensure it is added to your system path.
 4. **Ninja**:
    If `ninja.exe` is not in your PATH, download it from [Ninja Releases](https://github.com/ninja-build/ninja/releases/tag/v1.12.0), unzip, and copy `ninja.exe` to `${USER_PATH}/ninja`.
 5. **Configure settings.ini**:
