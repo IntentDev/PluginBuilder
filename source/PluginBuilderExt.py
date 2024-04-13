@@ -24,9 +24,11 @@ class PluginBuilderExt:
 
 		self.CMakeListsDat = self.ownerComp.op('CMakeLists')
 
+		self.user_home = os.environ.get('USERPROFILE', os.environ.get('HOME', ''))
 		self.config = configparser.ConfigParser()
 		self.config.read_string(self.SettingsDat.text)
-		self.user_home = os.environ.get('USERPROFILE', os.environ.get('HOME', ''))
+		self.PathsValid = False
+		self.PathsValid = self.check_paths()
 
 		self.on_par_value_change_map = {
 			'Outputto': self.onOutputto,
@@ -332,6 +334,24 @@ class PluginBuilderExt:
 		
 		shutil.copytree(self.plugin_dir, os.path.join(install_dir, self.Pluginname))
 		print(f"Plugin {self.Pluginname} installed to {install_dir}.")
+
+	def check_paths(self):
+		"""Check if paths set in the config are valid."""
+
+		value = self.get_path('Paths', 'PluginBuilderDir')
+		if not os.path.exists(value):
+			raise FileNotFoundError(f"settings.ini [paths] PluginBuilderDir: {value} does not exist.")
+		
+		value = self.get_path('Paths', 'NinjaDir')
+		if not os.path.exists(value):
+			raise FileNotFoundError(f"settings.ini [paths] NinjaDir: {value} does not exist.")
+		
+		value = self.get_path('Paths', 'VCVarsall')
+		if not os.path.exists(value):
+			raise FileNotFoundError(f"settings.ini [paths] VCVarsall: {value} does not exist.")
+		
+		return True
+
 
 	############## Par Callbacks ##################################################################
 	
