@@ -1,4 +1,4 @@
-start_block = '''
+start_block = '''# {'plugin_type': __PLUGIN_TYPE__}
 cmake_minimum_required (VERSION 3.21)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -9,6 +9,17 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS ON)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Debug)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/Debug)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/Debug)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Release)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/Release)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/Release)
+endif()
+
 '''
 
 project_block = '''
@@ -60,9 +71,17 @@ target_include_directories(PLUGIN_NAME PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
 target_link_libraries(PLUGIN_NAME PRIVATE CUDA::cudart)
 
 # Post-build command to copy the CUDA runtime DLL to the output directory
-set(cuda_runtime_dll "${CUDAToolkit_BIN_DIR}/cudart64_110.dll")
-add_custom_command(TARGET PLUGIN_NAME POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${cuda_runtime_dll} $<TARGET_FILE_DIR:PLUGIN_NAME>)
+# set(cuda_runtime_dll "${CUDAToolkit_BIN_DIR}/cudart64_110.dll")
+# add_custom_command(TARGET PLUGIN_NAME POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#     ${cuda_runtime_dll} $<TARGET_FILE_DIR:PLUGIN_NAME>)
+
+'''
+
+python_block = '''
+# Python
+#################################################################################################
+target_include_directories(PLUGIN_NAME PRIVATE "${PLUGIN_BUILDER_DIR}/3rdParty/Python/Include" "${PLUGIN_BUILDER_DIR}/3rdParty/Python/Include/PC")
+target_link_directories(PLUGIN_NAME PRIVATE "${PLUGIN_BUILDER_DIR}/3rdParty/Python/lib/x64")
 
 '''

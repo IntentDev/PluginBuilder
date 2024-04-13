@@ -26,52 +26,52 @@
 extern "C"
 {
 
-	DLLEXPORT
-	void
-	FillSOPPluginInfo(SOP_PluginInfo *info)
-	{
-		// Always return SOP_CPLUSPLUS_API_VERSION in this function.
-		info->apiVersion = SOPCPlusPlusAPIVersion;
+DLLEXPORT
+void
+FillSOPPluginInfo(SOP_PluginInfo *info)
+{
+	// Always return SOP_CPLUSPLUS_API_VERSION in this function.
+	info->apiVersion = SOPCPlusPlusAPIVersion;
 
-		// The opType is the unique name for this TOP. It must start with a 
-		// capital A-Z character, and all the following characters must lower case
-		// or numbers (a-z, 0-9)
-		info->customOPInfo.opType->setString("Simpleshapes");
+	// The opType is the unique name for this BasicCHOP. It must start with a 
+	// capital A-Z character, and all the following characters must lower case
+	// or numbers (a-z, 0-9)
+	info->customOPInfo.opType->setString("#__OP_TYPE__#");
 
-		// The opLabel is the text that will show up in the OP Create Dialog
-		info->customOPInfo.opLabel->setString("Simple Shapes");
+	// The opLabel is the text that will show up in the OP Create Dialog
+	info->customOPInfo.opLabel->setString("#__OP_LABEL__#");
 
-		// Will be turned into a 3 letter icon on the nodes
-		info->customOPInfo.opIcon->setString("SSP");
+	// Will be turned into a 3 letter icon on the nodes
+	info->customOPInfo.opIcon->setString("#__OP_ICON__#");
 
-		// Information about the author of this OP
-		info->customOPInfo.authorName->setString("Author Name");
-		info->customOPInfo.authorEmail->setString("email@email.com");
+	// Information about the author of this OP
+	info->customOPInfo.authorName->setString("#__OP_AUTHOR__#");
+	info->customOPInfo.authorEmail->setString("#__OP_EMAIL__#");
 
-		// This SOP works with 0 or 1 inputs
-		info->customOPInfo.minInputs = 0;
-		info->customOPInfo.maxInputs = 1;
+	// This SOP works with 0 or 1 inputs
+	info->customOPInfo.minInputs = 0;
+	info->customOPInfo.maxInputs = 1;
 
-	}
+}
 
-	DLLEXPORT
-	SOP_CPlusPlusBase*
-	CreateSOPInstance(const OP_NodeInfo* info)
-	{
-		// Return a new instance of your class every time this is called.
-		// It will be called once per SOP that is using the .dll
-		return new SimpleShapes(info);
-	}
+DLLEXPORT
+SOP_CPlusPlusBase*
+CreateSOPInstance(const OP_NodeInfo* info)
+{
+	// Return a new instance of your class every time this is called.
+	// It will be called once per SOP that is using the .dll
+	return new SimpleShapes(info);
+}
 
-	DLLEXPORT
-	void
-	DestroySOPInstance(SOP_CPlusPlusBase* instance)
-	{
-		// Delete the instance here, this will be called when
-		// Touch is shutting down, when the SOP using that instance is deleted, or
-		// if the SOP loads a different DLL
-		delete (SimpleShapes*)instance;
-	}
+DLLEXPORT
+void
+DestroySOPInstance(SOP_CPlusPlusBase* instance)
+{
+	// Delete the instance here, this will be called when
+	// Touch is shutting down, when the SOP using that instance is deleted, or
+	// if the SOP loads a different DLL
+	delete (SimpleShapes*)instance;
+}
 
 };
 

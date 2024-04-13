@@ -168,18 +168,21 @@ FillCHOPPluginInfo(CHOP_PluginInfo *info)
 	// Always set this to CHOPCPlusPlusAPIVersion.
 	info->apiVersion = CHOPCPlusPlusAPIVersion;
 
-	// The opType is the unique name for this CHOP. It must start with a 
+	// The opType is the unique name for this BasicCHOP. It must start with a 
 	// capital A-Z character, and all the following characters must lower case
 	// or numbers (a-z, 0-9)
-	info->customOPInfo.opType->setString("Customsignalpython");
+	info->customOPInfo.opType->setString("#__OP_TYPE__#");
 
 	// The opLabel is the text that will show up in the OP Create Dialog
-	info->customOPInfo.opLabel->setString("Custom Signal Python");
+	info->customOPInfo.opLabel->setString("#__OP_LABEL__#");
+
+	// Will be turned into a 3 letter icon on the nodes
+	info->customOPInfo.opIcon->setString("#__OP_ICON__#");
 
 	// Information about the author of this OP
-	info->customOPInfo.authorName->setString("Author Name");
-	info->customOPInfo.authorEmail->setString("email@email.com");
-
+	info->customOPInfo.authorName->setString("#__OP_AUTHOR__#");
+	info->customOPInfo.authorEmail->setString("#__OP_EMAIL__#");
+	
 	// This CHOP can work with 0 inputs
 	info->customOPInfo.minInputs = 0;
 

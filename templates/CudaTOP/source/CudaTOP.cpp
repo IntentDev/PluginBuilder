@@ -34,20 +34,20 @@ FillTOPPluginInfo(TOP_PluginInfo *info)
 	// Change this to change the executeMode behavior of this plugin.
 	info->executeMode = TOP_ExecuteMode::CUDA;
 
-	// The opType is the unique name for this TOP. It must start with a 
+	// The opType is the unique name for this BasicCHOP. It must start with a 
 	// capital A-Z character, and all the following characters must lower case
 	// or numbers (a-z, 0-9)
-	info->customOPInfo.opType->setString("Cudasample");
+	info->customOPInfo.opType->setString("#__OP_TYPE__#");
 
 	// The opLabel is the text that will show up in the OP Create Dialog
-	info->customOPInfo.opLabel->setString("CUDA Sample");
+	info->customOPInfo.opLabel->setString("#__OP_LABEL__#");
 
 	// Will be turned into a 3 letter icon on the nodes
-	info->customOPInfo.opIcon->setString("CDA");
+	info->customOPInfo.opIcon->setString("#__OP_ICON__#");
 
 	// Information about the author of this OP
-	info->customOPInfo.authorName->setString("Author Name");
-	info->customOPInfo.authorEmail->setString("email@email.com");
+	info->customOPInfo.authorName->setString("#__OP_AUTHOR__#");
+	info->customOPInfo.authorEmail->setString("#__OP_EMAIL__#");
 
 	// This TOP works with 0 or 1 inputs connected
 	info->customOPInfo.minInputs = 0;
