@@ -1,6 +1,6 @@
 # PluginBuilder
 
-PluginBuilder is a development tool designed to accelerate the process of building, developing, and compiling plugins for TouchDesigner. It facilitates real-time, script-like editing of plugins by leveraging CMake and Ninja for rapid compilation. The system automatically recompiles and reloads the plugin upon any source changes, ensuring build times remain under a second.
+PluginBuilder is a development tool designed to accelerate the process of building, developing, and compiling plugins for TouchDesigner. It facilitates real-time, script-like editing of plugins by leveraging CMake and Ninja for rapid compilation. The system automatically recompiles and reloads the plugin upon any source changes, with extremely fast build times that typically are under a second.
 
 ## Requirements
 
