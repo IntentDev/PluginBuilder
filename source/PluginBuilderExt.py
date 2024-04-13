@@ -160,9 +160,11 @@ class PluginBuilderExt:
 	def build_path(self):
 		return f"{self.CurrentBinDir}/{self.Pluginname}.dll"
 
+	@property
+	def CompileOnUpdate(self):
+		return self.ownerComp.par.Compileonupdate.eval()
 	
-	def get_path(self, section, key):
-		return self.config.get(section, key).replace('${USER_PATH}', self.user_home)
+
 	
 
 	
@@ -172,6 +174,9 @@ class PluginBuilderExt:
 
 	############## Internal Methods ###############################################################
  
+	def get_path(self, section, key):
+		return self.config.get(section, key).replace('${USER_PATH}', self.user_home)
+
 	def create_plugin(self):
 		"""Creates a new plugin project and configure builder."""
 
