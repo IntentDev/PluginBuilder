@@ -31,15 +31,10 @@ project (PLUGIN_NAME LANGUAGES CXX CUDA)
 '''
 
 core_block = '''
-if(NOT DEFINED PLUGIN_BUILDER_DIR)
-    message(FATAL_ERROR "PLUGIN_BUILDER_DIR is not defined")
-endif()
-
-if(NOT DEFINED PLUGIN_DIR)
-    message(FATAL_ERROR "PLUGIN_DIR is not defined")
-endif()
-
+set(PLUGIN_BUILDER_DIR "D:/TD/PluginBuilder")
+set(PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../Plugins/PLUGIN_NAME")
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
+
 set(PRINT_SOURCE_FILES On)
 if(PRINT_SOURCE_FILES)
     foreach(source IN LISTS PROJ_SOURCE_FILES)
@@ -57,9 +52,6 @@ file(GLOB_RECURSE PROJ_SOURCE_FILES "${SOURCE_DIR}/*.cpp" "${SOURCE_DIR}/*.c" "$
 add_library(PLUGIN_NAME SHARED ${PROJ_SOURCE_FILES})
 target_include_directories(PLUGIN_NAME PRIVATE ${SOURCE_DIR} ${INCLUDE_DIR})
 
-add_custom_command(TARGET PLUGIN_NAME POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    $<TARGET_FILE:PLUGIN_NAME> "${PLUGIN_DIR}") 
 '''
 
 cuda_block = '''
