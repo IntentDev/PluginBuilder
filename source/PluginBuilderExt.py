@@ -204,9 +204,6 @@ class PluginBuilderExt:
 		if name == '':
 			raise ValueError("Plugin name is empty.")
 		
-		if name in [o.name for o in self.parent.findChildren()]:
-			raise ValueError(f"operator {name} already exists.")
-		
 		os.makedirs(self.plugin_projects_dir, exist_ok=True)
 		
 		if os.path.exists(self.working_dir):
