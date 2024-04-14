@@ -1,6 +1,12 @@
 start_block = '''# {'plugin_type': __PLUGIN_TYPE__}
 cmake_minimum_required (VERSION 3.21)
 
+# Enable Hot Reload for MSVC compilers if supported.
+if (POLICY CMP0141)
+  cmake_policy(SET CMP0141 NEW)
+  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
+
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo")
@@ -27,6 +33,7 @@ project (PLUGIN_NAME LANGUAGES CXX)
 '''
 
 cuda_project_block = '''
+set(CMAKE_CUDA_ARCHITECTURES 75;80;86;89)
 project (PLUGIN_NAME LANGUAGES CXX CUDA)
 '''
 
