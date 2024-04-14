@@ -203,9 +203,6 @@ class PluginBuilderExt:
 	def create_plugin(self):
 		"""Creates a new plugin project and configure builder."""
 
-		self.folder_binDat.par.refresh = False
-		self.folder_sourceDat.par.refresh = False
-
 		name = self.Pluginname
 		if name == '':
 			raise ValueError("Plugin name is empty.")
@@ -265,13 +262,7 @@ class PluginBuilderExt:
 			raise e
 		
 		self.create_plugin_loader(template_info.get('type'))
-		run("args[0].PostCreatePlugin()", self.ownerComp, delayFrames=300)
 
-	def PostCreatePlugin(self):
-		self.folder_binDat.par.refresh = True
-		self.folder_sourceDat.par.refresh = True
-		self.CMakeListsDat.cook(force=True)
-		
 	def destroy_children(self):
 		children = self.ownerComp.findChildren(depth=1)
 		for child in children:
