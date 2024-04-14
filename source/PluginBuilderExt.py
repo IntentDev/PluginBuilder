@@ -54,11 +54,8 @@ class PluginBuilderExt:
 		self.PathsValid = self.check_paths()
 
 		self.dev_mode = False
-		# if config has a dev_mode section, set dev_mode to True
 		if self.config.has_section('DevMode'):
 			self.dev_mode = True
-
-		print('Dev Mode:', self.dev_mode)
 
 		self.on_par_value_change_map = {
 			'Outputto': self.onOutputto,
@@ -262,7 +259,7 @@ class PluginBuilderExt:
 			raise e
 		
 		self.create_plugin_loader(template_info.get('type'))
-		
+		run("args[0].PostCreatePlugin()", self.ownerComp, delayFrames=300)
 		if not self.dev_mode:
 			self.disable_create_pars()
 
@@ -379,6 +376,9 @@ class PluginBuilderExt:
 		self.ownerComp.par.Pluginname.readOnly = True
 		self.ownerComp.par.Plugintemplate.readOnly = True
 		self.ownerComp.par.Createinputop.enable = False
+
+	def PostCreatePlugin(self):
+		self.CMakeListsDat.cook(force=True)
 	
 	############## External Methods ###############################################################
  
