@@ -12,7 +12,7 @@
 * prior written permission from Derivative.
 */
 
-#include "SimpleShapes.h"
+#include "SimpleShapesSOP.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -60,7 +60,7 @@ CreateSOPInstance(const OP_NodeInfo* info)
 {
 	// Return a new instance of your class every time this is called.
 	// It will be called once per SOP that is using the .dll
-	return new SimpleShapes(info);
+	return new SimpleShapesSOP(info);
 }
 
 DLLEXPORT
@@ -70,13 +70,13 @@ DestroySOPInstance(SOP_CPlusPlusBase* instance)
 	// Delete the instance here, this will be called when
 	// Touch is shutting down, when the SOP using that instance is deleted, or
 	// if the SOP loads a different DLL
-	delete (SimpleShapes*)instance;
+	delete (SimpleShapesSOP*)instance;
 }
 
 };
 
 
-SimpleShapes::SimpleShapes(const OP_NodeInfo* info) : myNodeInfo(info)
+SimpleShapesSOP::SimpleShapesSOP(const OP_NodeInfo* info) : myNodeInfo(info)
 {
 	myExecuteCount = 0;
 	myOffset = 0.0;
@@ -88,13 +88,13 @@ SimpleShapes::SimpleShapes(const OP_NodeInfo* info) : myNodeInfo(info)
 	myDat = "N/A";
 }
 
-SimpleShapes::~SimpleShapes()
+SimpleShapesSOP::~SimpleShapesSOP()
 {
 
 }
 
 void
-SimpleShapes::getGeneralInfo(SOP_GeneralInfo* ginfo, const OP_Inputs* inputs, void* reserved)
+SimpleShapesSOP::getGeneralInfo(SOP_GeneralInfo* ginfo, const OP_Inputs* inputs, void* reserved)
 {
 	// This will cause the node to cook every frame
 	ginfo->cookEveryFrameIfAsked = false;
@@ -112,7 +112,7 @@ SimpleShapes::getGeneralInfo(SOP_GeneralInfo* ginfo, const OP_Inputs* inputs, vo
 //-----------------------------------------------------------------------------------------------------
 
 void
-SimpleShapes::cubeGeometry(SOP_Output* output, float scale)
+SimpleShapesSOP::cubeGeometry(SOP_Output* output, float scale)
 {
 	// to generate a geometry:
 	// addPoint() is the first function to be called.
@@ -219,7 +219,7 @@ SimpleShapes::cubeGeometry(SOP_Output* output, float scale)
 }
 
 void
-SimpleShapes::lineGeometry(SOP_Output* output)
+SimpleShapesSOP::lineGeometry(SOP_Output* output)
 {
 	// to generate a geometry:
 	// addPoint() is the first function to be called.
@@ -347,7 +347,7 @@ SimpleShapes::lineGeometry(SOP_Output* output)
 }
 
 void
-SimpleShapes::triangleGeometry(SOP_Output* output)
+SimpleShapesSOP::triangleGeometry(SOP_Output* output)
 {
 	int32_t vertices[3] = { 0, 1, 2 };
 
@@ -366,7 +366,7 @@ SimpleShapes::triangleGeometry(SOP_Output* output)
 }
 
 void
-SimpleShapes::execute(SOP_Output* output, const OP_Inputs* inputs, void* reserved)
+SimpleShapesSOP::execute(SOP_Output* output, const OP_Inputs* inputs, void* reserved)
 {
 	myExecuteCount++;
 
@@ -696,7 +696,7 @@ fillParticleVBO(SOP_VBOOutput* output,
 }
 
 void
-SimpleShapes::cubeGeometryVBO(SOP_VBOOutput* output, float scale)
+SimpleShapesSOP::cubeGeometryVBO(SOP_VBOOutput* output, float scale)
 {
 	Position pointArr[] =
 	{
@@ -879,7 +879,7 @@ SimpleShapes::cubeGeometryVBO(SOP_VBOOutput* output, float scale)
 }
 
 void
-SimpleShapes::lineGeometryVBO(SOP_VBOOutput* output)
+SimpleShapesSOP::lineGeometryVBO(SOP_VBOOutput* output)
 {
 	Position pointArr[] =
 	{
@@ -944,7 +944,7 @@ SimpleShapes::lineGeometryVBO(SOP_VBOOutput* output)
 }
 
 void
-SimpleShapes::triangleGeometryVBO(SOP_VBOOutput* output)
+SimpleShapesSOP::triangleGeometryVBO(SOP_VBOOutput* output)
 {
 	Vector normals[] =
 	{
@@ -976,7 +976,7 @@ SimpleShapes::triangleGeometryVBO(SOP_VBOOutput* output)
 }
 
 void
-SimpleShapes::particleGeometryVBO(SOP_VBOOutput* output)
+SimpleShapesSOP::particleGeometryVBO(SOP_VBOOutput* output)
 {
 	Position pointArr[] =
 	{
@@ -1127,7 +1127,7 @@ SimpleShapes::particleGeometryVBO(SOP_VBOOutput* output)
 
 
 void
-SimpleShapes::executeVBO(SOP_VBOOutput* output,
+SimpleShapesSOP::executeVBO(SOP_VBOOutput* output,
 						const OP_Inputs* inputs,
 						void* reserved)
 {
@@ -1233,7 +1233,7 @@ SimpleShapes::executeVBO(SOP_VBOOutput* output,
 //-----------------------------------------------------------------------------------------------------
 
 int32_t
-SimpleShapes::getNumInfoCHOPChans(void* reserved)
+SimpleShapesSOP::getNumInfoCHOPChans(void* reserved)
 {
 	// We return the number of channel we want to output to any Info CHOP
 	// connected to the CHOP. In this example we are just going to send 4 channels.
@@ -1241,7 +1241,7 @@ SimpleShapes::getNumInfoCHOPChans(void* reserved)
 }
 
 void
-SimpleShapes::getInfoCHOPChan(int32_t index,
+SimpleShapesSOP::getInfoCHOPChan(int32_t index,
 								OP_InfoCHOPChan* chan, void* reserved)
 {
 	// This function will be called once for each channel we said we'd want to return
@@ -1273,7 +1273,7 @@ SimpleShapes::getInfoCHOPChan(int32_t index,
 }
 
 bool
-SimpleShapes::getInfoDATSize(OP_InfoDATSize* infoSize, void* reserved)
+SimpleShapesSOP::getInfoDATSize(OP_InfoDATSize* infoSize, void* reserved)
 {
 	infoSize->rows = 3;
 	infoSize->cols = 2;
@@ -1284,7 +1284,7 @@ SimpleShapes::getInfoDATSize(OP_InfoDATSize* infoSize, void* reserved)
 }
 
 void
-SimpleShapes::getInfoDATEntries(int32_t index,
+SimpleShapesSOP::getInfoDATEntries(int32_t index,
 								int32_t nEntries,
 								OP_InfoDATEntries* entries,
 								void* reserved)
@@ -1352,7 +1352,7 @@ SimpleShapes::getInfoDATEntries(int32_t index,
 
 
 void
-SimpleShapes::setupParameters(OP_ParameterManager* manager, void* reserved)
+SimpleShapesSOP::setupParameters(OP_ParameterManager* manager, void* reserved)
 {
 	// CHOP
 	{
@@ -1420,7 +1420,7 @@ SimpleShapes::setupParameters(OP_ParameterManager* manager, void* reserved)
 }
 
 void
-SimpleShapes::pulsePressed(const char* name, void* reserved)
+SimpleShapesSOP::pulsePressed(const char* name, void* reserved)
 {
 	if (!strcmp(name, "Reset"))
 	{

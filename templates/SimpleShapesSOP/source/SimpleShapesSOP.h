@@ -19,13 +19,13 @@
 using namespace TD;
 
 // To get more help about these functions, look at SOP_CPlusPlusBase.h
-class SimpleShapes : public SOP_CPlusPlusBase
+class SimpleShapesSOP : public SOP_CPlusPlusBase
 {
 public:
 
-	SimpleShapes(const OP_NodeInfo* info);
+	SimpleShapesSOP(const OP_NodeInfo* info);
 
-	virtual ~SimpleShapes();
+	virtual ~SimpleShapesSOP();
 
 	virtual void	getGeneralInfo(SOP_GeneralInfo*, const OP_Inputs*, void* reserved1) override;
 
