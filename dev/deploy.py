@@ -4,6 +4,8 @@ print('Deploying PluginBuilder.tox')
 
 PluginBuilderComp = op('PluginBuilder')
 
+op('PluginBuilder').EnableCreatePars()
+
 PluginBuilderComp.par.Pluginname = ''
 PluginBuilderComp.par.Plugintemplate.menuIndex = 0
 PluginBuilderComp.par.Createinputop = False

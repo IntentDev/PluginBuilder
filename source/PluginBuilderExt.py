@@ -53,6 +53,13 @@ class PluginBuilderExt:
 		self.PathsValid = False
 		self.PathsValid = self.check_paths()
 
+		self.dev_mode = False
+		# if config has a dev_mode section, set dev_mode to True
+		if self.config.has_section('DevMode'):
+			self.dev_mode = True
+
+		print('Dev Mode:', self.dev_mode)
+
 		self.on_par_value_change_map = {
 			'Outputto': self.onOutputto,
 			'Pluginname': self.onPluginname,
@@ -188,13 +195,6 @@ class PluginBuilderExt:
 		return self.ownerComp.par.Compileonupdate.eval()
 	
 
-	
-
-	
-	############## External Methods ###############################################################
- 
-
-
 	############## Internal Methods ###############################################################
  
 	def get_path(self, section, key):
@@ -262,6 +262,9 @@ class PluginBuilderExt:
 			raise e
 		
 		self.create_plugin_loader(template_info.get('type'))
+		
+		if not self.dev_mode:
+			self.disable_create_pars()
 
 	def destroy_children(self):
 		children = self.ownerComp.findChildren(depth=1)
@@ -370,6 +373,20 @@ class PluginBuilderExt:
 			raise FileNotFoundError(f"settings.ini [paths] VCVarsall: {value} does not exist.")
 		
 		return True
+	
+	def disable_create_pars(self):
+		self.ownerComp.par.Createplugin.enable = False
+		self.ownerComp.par.Pluginname.readOnly = True
+		self.ownerComp.par.Plugintemplate.readOnly = True
+		self.ownerComp.par.Createinputop.enable = False
+	
+	############## External Methods ###############################################################
+ 
+	def EnableCreatePars(self):
+		self.ownerComp.par.Createplugin.enable = True
+		self.ownerComp.par.Pluginname.readOnly = False
+		self.ownerComp.par.Plugintemplate.readOnly = False
+		self.ownerComp.par.Createinputop.enable = True
 
 
 	############## Par Callbacks ##################################################################
@@ -417,7 +434,6 @@ class PluginBuilderExt:
 
 		self.RefreshDats()
 		
-
 
 	############## File Callbacks #################################################################
  
