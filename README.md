@@ -17,9 +17,9 @@ PluginBuilder is a development tool designed to accelerate the process of buildi
 1. **PluginBuilder**:
    Clone or download PluginBuilder from its repository.
 2. **Visual Studio**:
-   If not already installed, install Visual Studio with C++ development tools [Visual Studio](https://visualstudio.microsoft.com).
+   If not already installed, install [Visual Studio](https://visualstudio.microsoft.com) with C++ development tools.
 3. **CMake**:
-   If not already installed, install CMake [CMake Download](https://cmake.org/download). Ensure it is added to your system path.
+   If not already installed, install [CMake](https://cmake.org/download). Ensure it is added to your system path.
 4. **Ninja**:
    If `ninja.exe` is not in your PATH, download it from [Ninja Releases](https://github.com/ninja-build/ninja/releases/tag/v1.12.0), unzip, and copy `ninja.exe` to `${USER_PATH}/ninja`.
 5. **Configure settings.ini**:
