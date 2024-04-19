@@ -42,7 +42,7 @@ project (PLUGIN_NAME LANGUAGES CXX CUDA)
 '''
 
 core_block = '''
-set(PLUGIN_BUILDER_DIR "D:/TD/PluginBuilder")
+# set(PLUGIN_BUILDER_DIR "D:/TD/PluginBuilder")
 set(PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../Plugins/PLUGIN_NAME")
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
 
