@@ -1,0 +1,17 @@
+{
+    "Version": 1,
+    "AllowedPlugins": {
+        "e20bedff": {
+            "ComputerName": "AEON",
+            "Plugins": {
+                "D:/TD/PluginBuilder/dev/Plugins/Test/Test.dll": {
+                    "Hashes": [
+                        "uXMFxvCnnuyYltkgeniAR1Qh7eJOkILfzzlgg2AIaYP+1+cRC2rKqznxgtGB1DUCPxEYAAEqZMB0bz/nJvuc/KLd/3SiGkwWRzwGebEqbKA8u/zPEqJHzyv39rWf0pTx"
+                    ],
+                    "AuthorName": "Your Name",
+                    "AuthorEmail": "you@somewhere.com"
+                }
+            }
+        }
+    }
+}

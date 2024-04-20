@@ -27,6 +27,7 @@ import shutil
 import subprocess
 import threading
 import queue
+import json
 
 import CMakeBlocks
 
@@ -118,7 +119,7 @@ class PluginBuilderExt:
 	def cmake_build_cmd(self):
 		config = self.ownerComp.par.Buildconfig.eval()
 
-		cmd = f"cmake -B build -G Ninja -DPLUGIN_BUILDER_DIR={self.PluginBuilderDir} -DPLUGIN_DIR={self.plugin_dir} -DCMAKE_BUILD_TYPE={config}"
+		cmd = f"cmake -B build -G Ninja -DPLUGIN_BUILDER_DIR={self.PluginBuilderDir} -DPLUGIN_DIR={self.plugin_dir} -DCMAKE_BUILD_TYPE={config} -DPLUGINBUILDER_BUILD=On"
 		return cmd
 	
 	@property
@@ -180,6 +181,14 @@ class PluginBuilderExt:
 		return f"PluginProjects/{self.Pluginname}/build/bin/{self.build_config}"
 	
 	@property
+	def TDProjectName(self):
+		return ''.join(project.name.split('.')[:-2])
+	
+	@property
+	def TDPath(self):
+		return f"{app.binFolder}/TouchDesigner.exe"
+	
+	@property
 	def PluginPath(self):	
 		return f"{self.plugin_dir}/{self.Pluginname}.dll"
 	
@@ -200,6 +209,9 @@ class PluginBuilderExt:
 	def create_plugin(self):
 		"""Creates a new plugin project and configure builder."""
 
+		if self.process is None:
+			self.start_subprocess()
+
 		name = self.Pluginname
 		if name == '':
 			raise ValueError("Plugin name is empty.")
@@ -216,11 +228,30 @@ class PluginBuilderExt:
 
 		try:
 			cmake_text = template_info.get('assemble_cmake')()
-			cmake_text = cmake_text.replace('PLUGIN_NAME', self.Pluginname)
+			cmake_text = cmake_text.replace('__PLUGIN_NAME__', self.Pluginname)
 			cmake_text = cmake_text.replace('__PLUGIN_TYPE__', f"'{template_info.get('type')}'")
+			cmake_text = cmake_text.replace('__PLUGIN_BUILDER_DIR__', f'"{self.PluginBuilderDir}"')
 
 			with open(f"{self.working_dir}/CMakeLists.txt", 'w') as f:
 				f.write(cmake_text)
+
+			# copy CMakePresets.json
+			shutil.copyfile(f"{self.PluginBuilderDir}/source/CMakePresets.json", f"{self.working_dir}/CMakePresets.json")
+
+			# load launch.vs.json
+			with open(f"{self.PluginBuilderDir}/source/launch.vs.json", 'r') as f:
+				launch_vs_json = json.load(f)
+			
+			project_name = self.TDProjectName
+			td_path = self.TDPath
+			for config in launch_vs_json['configurations']:
+				config['name'] = config['name'].replace('__TD_PROJECT_NAME__', project_name)
+				config['args'][0] = config['args'][0].replace('__TD_PROJECT_NAME__', project_name)
+				config['projectTarget'] = config['projectTarget'].replace('__PLUGIN_NAME__', self.Pluginname)
+				config['exe'] = config['exe'].replace('__TD_PATH__', td_path )
+
+			with open(f"{self.working_dir}/launch.vs.json", 'w') as f:
+				json.dump(launch_vs_json, f, indent=4)
 
 			os.makedirs(f"{self.working_dir}/source")
 			template_replace_name = template_info.get('replace')
@@ -306,15 +337,17 @@ class PluginBuilderExt:
 	def build_plugin(self):
 		"""Builds the plugin project."""
 		
-		print(f"Building {self.Pluginname}...")
+		# print(f"Building {self.Pluginname}...")
 		if not os.path.exists(self.working_dir):
 			raise FileNotFoundError(f"Directory {self.working_dir} does not exist.")
 		
-		self.SendCommand(self.cmake_build_cmd)
+		if self.CMakeListsExists:
+			self.SendCommand(self.cmake_build_cmd)
 
 	def compile_plugin(self):
-		print(f"Compiling {self.Pluginname}...")
-		self.SendCommand(self.cmake_build_plugin_cmd)
+		# print(f"Compiling {self.Pluginname}...")
+		if self.CMakeListsExists:
+			self.SendCommand(self.cmake_build_plugin_cmd)
 
 	def BuildAndCompile(self):
 		self.build_plugin()
@@ -376,6 +409,14 @@ class PluginBuilderExt:
 
 	def PostCreatePlugin(self):
 		self.CMakeListsDat.cook(force=True)
+
+	def file_locked(self, filepath):
+		try:
+			with open(filepath, 'ab', buffering=0):
+				pass
+		except PermissionError:
+			return True  # The file is locked
+		return False
 	
 	############## External Methods ###############################################################
  
@@ -430,6 +471,7 @@ class PluginBuilderExt:
 			self.loader_op.cook(force=True)
 
 		self.RefreshDats()
+		# self.CheckAndPrintOutput()
 		
 
 	############## File Callbacks #################################################################
@@ -440,7 +482,7 @@ class PluginBuilderExt:
 		if self.loader_op is None or self.Pluginname == '':
 			return
 		
-		print(f"Reloading {self.Pluginname}...")
+		# print(f"Reloading {self.Pluginname}...")
 		
 		self.loader_op.par.unloadplugin = True
 		self.loader_op.cook(force=True)
@@ -451,7 +493,16 @@ class PluginBuilderExt:
 
 		if not os.path.exists(build_path):
 			print(f"File {build_path} does not exist.")
+			# for r in runs:
+			# 	r.kill()
+			# run("args[0].OnPluginUpdate()", self.ownerComp, delayFrames=1)
 			return
+		
+		# if self.file_locked(build_path):
+		# 	for r in runs:
+		# 		r.kill()
+		# 	run("args[0].OnPluginUpdate()", self.ownerComp, delayFrames=1)
+		# 	return
 		
 		if not os.path.exists(self.plugin_dir):
 			os.makedirs(self.plugin_dir)
@@ -521,6 +572,8 @@ class PluginBuilderExt:
 	def _output_reader(self):
 		"""Reads output from the subprocess and stores it in a queue."""
 		for line in self.process.stdout:
+			self.queue.put(line)
+		for line in self.process.stderr:
 			self.queue.put(line)
 		self.process.stdout.close()
 
