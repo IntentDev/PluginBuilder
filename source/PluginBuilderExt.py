@@ -109,10 +109,10 @@ class PluginBuilderExt:
 	def start_subprocess_base_cmd(self):
 		cmd = ['cmd.exe', '/K', self.vcvarsall, 'x64']
 
+
 		# add ninja to path
 		cmd.append('&&')
 		cmd.append(f'set PATH=%PATH%;{self.ninja_dir}')
-
 		return cmd
 
 	@property
@@ -135,6 +135,10 @@ class PluginBuilderExt:
 	@property
 	def working_dir(self):
 		return f"{self.plugin_projects_dir}/{self.Pluginname}"
+	
+	@property
+	def abs_working_dir(self):
+		return f"{project.folder}/{self.working_dir}"
 	
 	@property
 	def plugin_dir(self):
@@ -209,9 +213,6 @@ class PluginBuilderExt:
 	def create_plugin(self):
 		"""Creates a new plugin project and configure builder."""
 
-		if self.process is None:
-			self.start_subprocess()
-
 		name = self.Pluginname
 		if name == '':
 			raise ValueError("Plugin name is empty.")
@@ -281,7 +282,7 @@ class PluginBuilderExt:
 			if self.start_subprocess():
 				self.build_plugin()
 				self.compile_plugin()
-		
+
 		except Exception as e:
 			shutil.rmtree(self.working_dir)
 			raise e
@@ -338,8 +339,8 @@ class PluginBuilderExt:
 		"""Builds the plugin project."""
 		
 		# print(f"Building {self.Pluginname}...")
-		if not os.path.exists(self.working_dir):
-			raise FileNotFoundError(f"Directory {self.working_dir} does not exist.")
+		if not os.path.exists(self.abs_working_dir):
+			raise FileNotFoundError(f"Directory {self.abs_working_dir} does not exist.")
 		
 		if self.CMakeListsExists:
 			self.SendCommand(self.cmake_build_cmd)
@@ -493,9 +494,6 @@ class PluginBuilderExt:
 
 		if not os.path.exists(build_path):
 			print(f"File {build_path} does not exist.")
-			# for r in runs:
-			# 	r.kill()
-			# run("args[0].OnPluginUpdate()", self.ownerComp, delayFrames=1)
 			return
 		
 		# if self.file_locked(build_path):
@@ -514,7 +512,6 @@ class PluginBuilderExt:
 			self.loader_op.par.unloadplugin = False
 
 	def OnSourceUpdate(self):
-		# self.BuildAndCompile()
 		self.compile_plugin()
 
 
@@ -528,18 +525,15 @@ class PluginBuilderExt:
 		self.build_plugin()
 
 		
-
-
-
 	############## Subprocess #####################################################################
 
 	def start_subprocess(self):
 		"""Starts a subprocess and reads its output."""
 
 		# check if directory exists
-		if not os.path.exists(self.working_dir):
+		if not os.path.exists(self.abs_working_dir):
 			return False
-
+  
 		mode = self.ownerComp.par.Outputto.eval()
 		cmd = self.start_subprocess_base_cmd
 
@@ -549,33 +543,31 @@ class PluginBuilderExt:
 				stdin=subprocess.PIPE,
 				text=True,
 				shell=True,
-				cwd = self.working_dir
+				cwd = self.abs_working_dir
 			)
 		else:
 			self.process = subprocess.Popen(
 				cmd,
 				stdin=subprocess.PIPE,
 				stdout=subprocess.PIPE,
-				stderr=subprocess.PIPE, 
+				stderr=subprocess.STDOUT,
 				text=True,
 				shell=True,
 				bufsize=1,  # Line-buffered
-				cwd = self.working_dir
+				cwd = self.abs_working_dir
 			)
 
 			self.queue = queue.Queue()
 			self.output_thread = threading.Thread(target=self._output_reader)
 			self.output_thread.start()
+		
 
-		return True
+		return self.process.returncode is None
 
 	def _output_reader(self):
 		"""Reads output from the subprocess and stores it in a queue."""
 		for line in self.process.stdout:
 			self.queue.put(line)
-		for line in self.process.stderr:
-			self.queue.put(line)
-		self.process.stdout.close()
 
 	def SendCommand(self, command):
 		"""Sends a command to the subprocess."""
