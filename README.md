@@ -2,6 +2,8 @@
 
 PluginBuilder is a development tool designed to accelerate the process of building, developing, and compiling plugins for TouchDesigner from within TouchDesigner. It facilitates real-time, script-like editing of plugins by leveraging CMake and Ninja for rapid compilation. The system automatically recompiles and reloads the plugin upon any source changes, with extremely fast build times that typically run under a second.
 
+The build and compile processes are non-blocking, allowing TouchDesigner to run without any major stalls. The initial build (triggered by Create Plugin) is usually the longest where subsequent updates are completed in less than a second with minimal frame drops, depending on the caching and the scope of changes.
+
 ## Requirements
 
 - **TouchDesigner**: Version 2023.11600 or newer, with a commercial or pro license.
@@ -47,7 +49,33 @@ PluginBuilder is a development tool designed to accelerate the process of buildi
 8. **Install Plugin**:
    This will install a completed plugin in the global plugins folder located in `Documents/Derivative/Plugins` for use in other projects.
 
-The build and compile processes are non-blocking, allowing TouchDesigner to run without any major stalls. The initial build (triggered by Create Plugin) is usually the longest where subsequent updates are completed in less than a second with minimal frame drops, depending on the caching and the scope of changes.
+## Visual Studio workflow as editor and compiler with TD running continously
+
+1. **Create PluginBuilder Project**
+   Follow steps 1 through 4 in **Usage** above and toggle off the `Compile On Update` parameter.
+3. **Open Visual Studio**
+   Either right click in the the Plugin Project directory for your plugin and select Open with Visual Studio or open Visual Studio and select Open CMake project and navigate to the plugin project directory and open it. 
+4. **Edit and compile**
+   Edit and compile as required in Visual Studio
+5. **Attach debugger**
+   Attach debugger to TD process if desired
+
+## Visual Studio workflow debugging shared lib (dll) loaded as a plugin in TD workflow
+
+1. **Create PluginBuilder Project**
+   Follow steps 1 through 4 in **Usage** above and toggle off the `Compile On Update` parameter. Save the `{YourToeName}.toe`.
+2. **Load Plugin**
+   Restart the .toe so the new plugin shows up in the Op Create Dialog and load the plugin in your network. Optionally disable cooking on PluginBuilder. Save and close `{YourToeName}.toe`.
+3. **Open Visual Studio**
+   Either right click in the the Plugin Project directory for your plugin and select Open with Visual Studio or open Visual Studio and select Open CMake project and navigate to the plugin project directory and open it.
+4. **Edit and compile**
+   Edit and compile as required in Visual Studio
+5. **Debug**
+   In the `Select Startup Item` dropdown menu at the top of the Visual Studio editor select `Launch {YourToeName}.toe`. Now click `Launch {YourToeName}.toe` to start TD attached to the Visual Studio Debugger, with the path to `{YourToeName}.toe` passed as an argument.
+
+## Visual Studio Notes
+
+   A path has been set for the PluginBuilder directory in `CMakeList.txt` and a paths for `TouchDesigner.exe` and `{YourToeName}.toe` have been set in `launch.vs.json` (located in the plugin project directory). If any of these paths change the respective files will need to be manually updated for Visual Studio to successfully configure, generate and compile the CMake project. The harcoded variables will have no effect on building from within PluginBuilder.
 
 ## Contributing
 
