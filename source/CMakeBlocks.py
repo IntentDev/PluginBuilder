@@ -42,7 +42,7 @@ project (__PLUGIN_NAME__ LANGUAGES CXX CUDA)
 '''
 
 core_block = '''
-set(PLUGIN_BUILDER_DIR __PLUGIN_BUILDER_DIR__ CACHE PATH "Path to PluginBuilder directory")
+set(PLUGIN_BUILDER_DIR __PLUGIN_BUILDER_DIR__ CACHE PATH "Path to PluginBuilder directory" FORCE)
 set(PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../Plugins/__PLUGIN_NAME__")
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
 
@@ -64,10 +64,10 @@ add_library(__PLUGIN_NAME__ SHARED ${PROJ_SOURCE_FILES})
 target_include_directories(__PLUGIN_NAME__ PRIVATE ${SOURCE_DIR} ${INCLUDE_DIR})
 
 
-set(PLUGINBUILDER_BUILD OFF CACHE BOOL "PluginBuilder build")
-# post build command if not PLUGINBUILDER_BUILD is not defined
+set(PLUGINBUILDER_BUILD Off CACHE BOOL "PluginBuilder build" FORCE)
+
 if(NOT PLUGINBUILDER_BUILD)
-  message(STATUS "PLUGINBUILDER_BUILD not building")
+  message(STATUS "PluginBuilder in not building...")
   if(MSVC)
     target_compile_options(__PLUGIN_NAME__ PUBLIC "/ZI")
     target_link_options(__PLUGIN_NAME__ PUBLIC "/INCREMENTAL")

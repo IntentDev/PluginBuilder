@@ -186,7 +186,12 @@ class PluginBuilderExt:
 	
 	@property
 	def TDProjectName(self):
-		return ''.join(project.name.split('.')[:-2])
+		vals = project.name.split('.')
+
+		if len(vals) > 2:
+			return ''.join(vals[:-2])
+		
+		return vals[0]
 	
 	@property
 	def TDPath(self):
