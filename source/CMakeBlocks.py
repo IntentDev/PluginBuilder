@@ -64,10 +64,8 @@ add_library(__PLUGIN_NAME__ SHARED ${PROJ_SOURCE_FILES})
 target_include_directories(__PLUGIN_NAME__ PRIVATE ${SOURCE_DIR} ${INCLUDE_DIR})
 
 
-set(PLUGINBUILDER_BUILD Off CACHE BOOL "PluginBuilder build" FORCE)
-
-if(NOT PLUGINBUILDER_BUILD)
-  message(STATUS "PluginBuilder in not building...")
+if(NOT DEFINED ENV{PLUGINBUILDER_BUILD})
+  message(STATUS "PluginBuilder in not building __PLUGIN_NAME__")
   if(MSVC)
     target_compile_options(__PLUGIN_NAME__ PUBLIC "/ZI")
     target_link_options(__PLUGIN_NAME__ PUBLIC "/INCREMENTAL")

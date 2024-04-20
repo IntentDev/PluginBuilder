@@ -119,7 +119,7 @@ class PluginBuilderExt:
 	def cmake_build_cmd(self):
 		config = self.ownerComp.par.Buildconfig.eval()
 
-		cmd = f"cmake -B build -G Ninja -DPLUGIN_BUILDER_DIR={self.PluginBuilderDir} -DPLUGIN_DIR={self.plugin_dir} -DCMAKE_BUILD_TYPE={config} -DPLUGINBUILDER_BUILD=On"
+		cmd = f'set PLUGINBUILDER_BUILD="" && cmake -B build -G Ninja -DPLUGIN_BUILDER_DIR={self.PluginBuilderDir} -DPLUGIN_DIR={self.plugin_dir} -DCMAKE_BUILD_TYPE={config}'
 		return cmd
 	
 	@property
