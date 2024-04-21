@@ -33,23 +33,23 @@ endif()
 '''
 
 project_block = '''
-project (PLUGIN_NAME LANGUAGES CXX)
+project (__PLUGIN_NAME__ LANGUAGES CXX)
 '''
 
 cuda_project_block = '''
 set(CMAKE_CUDA_ARCHITECTURES 75;80;86;89)
-project (PLUGIN_NAME LANGUAGES CXX CUDA)
+project (__PLUGIN_NAME__ LANGUAGES CXX CUDA)
 '''
 
 core_block = '''
-# set(PLUGIN_BUILDER_DIR "D:/TD/PluginBuilder")
-set(PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../Plugins/PLUGIN_NAME")
+set(PLUGIN_BUILDER_DIR __PLUGIN_BUILDER_DIR__ CACHE PATH "Path to PluginBuilder directory" FORCE)
+set(PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../Plugins/__PLUGIN_NAME__")
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
 
 set(PRINT_SOURCE_FILES On)
 if(PRINT_SOURCE_FILES)
     foreach(source IN LISTS PROJ_SOURCE_FILES)
-      message(STATUS "PLUGIN_NAME source: ${source}")
+      message(STATUS "__PLUGIN_NAME__ source: ${source}")
     endforeach()
 endif()
 
@@ -58,11 +58,24 @@ set(INCLUDE_DIR "${PLUGIN_BUILDER_DIR}/include")
 message(STATUS "INCLUDE_DIR: ${INCLUDE_DIR}")
 
 # Collect all source files and exclude gtest files.
-file(GLOB_RECURSE PROJ_SOURCE_FILES "${SOURCE_DIR}/*.cpp" "${SOURCE_DIR}/*.c" "${SOURCE_DIR}/*.cu" "${SOURCE_DIR}/*.h")
+file(GLOB_RECURSE PROJ_SOURCE_FILES 
+"${SOURCE_DIR}/*.cpp" "${SOURCE_DIR}/*.c" "${SOURCE_DIR}/*.cu" "${SOURCE_DIR}/*.h" "${SOURCE_DIR}/*.cuh")
 
-add_library(PLUGIN_NAME SHARED ${PROJ_SOURCE_FILES})
-target_include_directories(PLUGIN_NAME PRIVATE ${SOURCE_DIR} ${INCLUDE_DIR})
+add_library(__PLUGIN_NAME__ SHARED ${PROJ_SOURCE_FILES})
+target_include_directories(__PLUGIN_NAME__ PRIVATE ${SOURCE_DIR} ${INCLUDE_DIR})
 
+if(DEFINED ENV{PLUGINBUILDER_BUILD})
+  message(STATUS "PluginBuilder is building __PLUGIN_NAME__")
+else()  
+  if(MSVC)
+    target_compile_options(__PLUGIN_NAME__ PUBLIC "/Zi")
+    target_link_options(__PLUGIN_NAME__ PUBLIC "/INCREMENTAL")
+  endif()
+
+  add_custom_command(TARGET __PLUGIN_NAME__ POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    $<TARGET_FILE:__PLUGIN_NAME__> "${PLUGIN_DIR}")
+endif()
 '''
 
 cuda_block = '''
@@ -70,21 +83,21 @@ cuda_block = '''
 #################################################################################################
 find_package(CUDAToolkit REQUIRED)
 message(STATUS CUDAToolkit_INCLUDE_DIRS=${CUDAToolkit_INCLUDE_DIRS})
-target_include_directories(PLUGIN_NAME PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
-target_link_libraries(PLUGIN_NAME PRIVATE CUDA::cudart)
+target_include_directories(__PLUGIN_NAME__ PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
+target_link_libraries(__PLUGIN_NAME__ PRIVATE CUDA::cudart)
 
 # Post-build command to copy the CUDA runtime DLL to the output directory
 # set(cuda_runtime_dll "${CUDAToolkit_BIN_DIR}/cudart64_110.dll")
-# add_custom_command(TARGET PLUGIN_NAME POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#     ${cuda_runtime_dll} $<TARGET_FILE_DIR:PLUGIN_NAME>)
+# add_custom_command(TARGET __PLUGIN_NAME__ POST_BUILD
+#   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#   ${cuda_runtime_dll} $<TARGET_FILE_DIR:__PLUGIN_NAME__>)
 
 '''
 
 python_block = '''
 # Python
 #################################################################################################
-target_include_directories(PLUGIN_NAME PRIVATE "${PLUGIN_BUILDER_DIR}/3rdParty/Python/Include" "${PLUGIN_BUILDER_DIR}/3rdParty/Python/Include/PC")
-target_link_directories(PLUGIN_NAME PRIVATE "${PLUGIN_BUILDER_DIR}/3rdParty/Python/lib/x64")
+target_include_directories(__PLUGIN_NAME__ PRIVATE "${PLUGIN_BUILDER_DIR}/3rdParty/Python/Include" "${PLUGIN_BUILDER_DIR}/3rdParty/Python/Include/PC")
+target_link_directories(__PLUGIN_NAME__ PRIVATE "${PLUGIN_BUILDER_DIR}/3rdParty/Python/lib/x64")
 
 '''

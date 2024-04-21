@@ -27,6 +27,7 @@ import shutil
 import subprocess
 import threading
 import queue
+import json
 
 import CMakeBlocks
 
@@ -108,17 +109,17 @@ class PluginBuilderExt:
 	def start_subprocess_base_cmd(self):
 		cmd = ['cmd.exe', '/K', self.vcvarsall, 'x64']
 
+
 		# add ninja to path
 		cmd.append('&&')
 		cmd.append(f'set PATH=%PATH%;{self.ninja_dir}')
-
 		return cmd
 
 	@property
 	def cmake_build_cmd(self):
 		config = self.ownerComp.par.Buildconfig.eval()
 
-		cmd = f"cmake -B build -G Ninja -DPLUGIN_BUILDER_DIR={self.PluginBuilderDir} -DPLUGIN_DIR={self.plugin_dir} -DCMAKE_BUILD_TYPE={config}"
+		cmd = f'set PLUGINBUILDER_BUILD="" && cmake -B build -G Ninja -DPLUGIN_BUILDER_DIR={self.PluginBuilderDir} -DPLUGIN_DIR={self.plugin_dir} -DCMAKE_BUILD_TYPE={config}'
 		return cmd
 	
 	@property
@@ -134,6 +135,10 @@ class PluginBuilderExt:
 	@property
 	def working_dir(self):
 		return f"{self.plugin_projects_dir}/{self.Pluginname}"
+	
+	@property
+	def abs_working_dir(self):
+		return f"{project.folder}/{self.working_dir}"
 	
 	@property
 	def plugin_dir(self):
@@ -180,6 +185,19 @@ class PluginBuilderExt:
 		return f"PluginProjects/{self.Pluginname}/build/bin/{self.build_config}"
 	
 	@property
+	def TDProjectName(self):
+		vals = project.name.split('.')
+
+		if len(vals) > 2:
+			return ''.join(vals[:-2])
+		
+		return vals[0]
+	
+	@property
+	def TDPath(self):
+		return f"{app.binFolder}/TouchDesigner.exe"
+	
+	@property
 	def PluginPath(self):	
 		return f"{self.plugin_dir}/{self.Pluginname}.dll"
 	
@@ -216,11 +234,30 @@ class PluginBuilderExt:
 
 		try:
 			cmake_text = template_info.get('assemble_cmake')()
-			cmake_text = cmake_text.replace('PLUGIN_NAME', self.Pluginname)
+			cmake_text = cmake_text.replace('__PLUGIN_NAME__', self.Pluginname)
 			cmake_text = cmake_text.replace('__PLUGIN_TYPE__', f"'{template_info.get('type')}'")
+			cmake_text = cmake_text.replace('__PLUGIN_BUILDER_DIR__', f'"{self.PluginBuilderDir}"')
 
 			with open(f"{self.working_dir}/CMakeLists.txt", 'w') as f:
 				f.write(cmake_text)
+
+			# copy CMakePresets.json
+			shutil.copyfile(f"{self.PluginBuilderDir}/source/CMakePresets.json", f"{self.working_dir}/CMakePresets.json")
+
+			# load launch.vs.json
+			with open(f"{self.PluginBuilderDir}/source/launch.vs.json", 'r') as f:
+				launch_vs_json = json.load(f)
+			
+			project_name = self.TDProjectName
+			td_path = self.TDPath
+			for config in launch_vs_json['configurations']:
+				config['name'] = config['name'].replace('__TD_PROJECT_NAME__', project_name)
+				config['args'][0] = config['args'][0].replace('__TD_PROJECT_NAME__', project_name)
+				config['projectTarget'] = config['projectTarget'].replace('__PLUGIN_NAME__', self.Pluginname)
+				config['exe'] = config['exe'].replace('__TD_PATH__', td_path )
+
+			with open(f"{self.working_dir}/launch.vs.json", 'w') as f:
+				json.dump(launch_vs_json, f, indent=4)
 
 			os.makedirs(f"{self.working_dir}/source")
 			template_replace_name = template_info.get('replace')
@@ -250,7 +287,7 @@ class PluginBuilderExt:
 			if self.start_subprocess():
 				self.build_plugin()
 				self.compile_plugin()
-		
+
 		except Exception as e:
 			shutil.rmtree(self.working_dir)
 			raise e
@@ -306,15 +343,17 @@ class PluginBuilderExt:
 	def build_plugin(self):
 		"""Builds the plugin project."""
 		
-		print(f"Building {self.Pluginname}...")
-		if not os.path.exists(self.working_dir):
-			raise FileNotFoundError(f"Directory {self.working_dir} does not exist.")
+		# print(f"Building {self.Pluginname}...")
+		if not os.path.exists(self.abs_working_dir):
+			raise FileNotFoundError(f"Directory {self.abs_working_dir} does not exist.")
 		
-		self.SendCommand(self.cmake_build_cmd)
+		if self.CMakeListsExists:
+			self.SendCommand(self.cmake_build_cmd)
 
 	def compile_plugin(self):
-		print(f"Compiling {self.Pluginname}...")
-		self.SendCommand(self.cmake_build_plugin_cmd)
+		# print(f"Compiling {self.Pluginname}...")
+		if self.CMakeListsExists:
+			self.SendCommand(self.cmake_build_plugin_cmd)
 
 	def BuildAndCompile(self):
 		self.build_plugin()
@@ -376,6 +415,14 @@ class PluginBuilderExt:
 
 	def PostCreatePlugin(self):
 		self.CMakeListsDat.cook(force=True)
+
+	def file_locked(self, filepath):
+		try:
+			with open(filepath, 'ab', buffering=0):
+				pass
+		except PermissionError:
+			return True  # The file is locked
+		return False
 	
 	############## External Methods ###############################################################
  
@@ -430,6 +477,7 @@ class PluginBuilderExt:
 			self.loader_op.cook(force=True)
 
 		self.RefreshDats()
+		# self.CheckAndPrintOutput()
 		
 
 	############## File Callbacks #################################################################
@@ -440,7 +488,7 @@ class PluginBuilderExt:
 		if self.loader_op is None or self.Pluginname == '':
 			return
 		
-		print(f"Reloading {self.Pluginname}...")
+		# print(f"Reloading {self.Pluginname}...")
 		
 		self.loader_op.par.unloadplugin = True
 		self.loader_op.cook(force=True)
@@ -453,6 +501,12 @@ class PluginBuilderExt:
 			print(f"File {build_path} does not exist.")
 			return
 		
+		# if self.file_locked(build_path):
+		# 	for r in runs:
+		# 		r.kill()
+		# 	run("args[0].OnPluginUpdate()", self.ownerComp, delayFrames=1)
+		# 	return
+		
 		if not os.path.exists(self.plugin_dir):
 			os.makedirs(self.plugin_dir)
 
@@ -463,7 +517,6 @@ class PluginBuilderExt:
 			self.loader_op.par.unloadplugin = False
 
 	def OnSourceUpdate(self):
-		# self.BuildAndCompile()
 		self.compile_plugin()
 
 
@@ -477,18 +530,15 @@ class PluginBuilderExt:
 		self.build_plugin()
 
 		
-
-
-
 	############## Subprocess #####################################################################
 
 	def start_subprocess(self):
 		"""Starts a subprocess and reads its output."""
 
 		# check if directory exists
-		if not os.path.exists(self.working_dir):
+		if not os.path.exists(self.abs_working_dir):
 			return False
-
+  
 		mode = self.ownerComp.par.Outputto.eval()
 		cmd = self.start_subprocess_base_cmd
 
@@ -498,31 +548,31 @@ class PluginBuilderExt:
 				stdin=subprocess.PIPE,
 				text=True,
 				shell=True,
-				cwd = self.working_dir
+				cwd = self.abs_working_dir
 			)
 		else:
 			self.process = subprocess.Popen(
 				cmd,
 				stdin=subprocess.PIPE,
 				stdout=subprocess.PIPE,
-				stderr=subprocess.PIPE, 
+				stderr=subprocess.STDOUT,
 				text=True,
 				shell=True,
 				bufsize=1,  # Line-buffered
-				cwd = self.working_dir
+				cwd = self.abs_working_dir
 			)
 
 			self.queue = queue.Queue()
 			self.output_thread = threading.Thread(target=self._output_reader)
 			self.output_thread.start()
+		
 
-		return True
+		return self.process.returncode is None
 
 	def _output_reader(self):
 		"""Reads output from the subprocess and stores it in a queue."""
 		for line in self.process.stdout:
 			self.queue.put(line)
-		self.process.stdout.close()
 
 	def SendCommand(self, command):
 		"""Sends a command to the subprocess."""
