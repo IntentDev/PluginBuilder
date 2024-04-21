@@ -49,7 +49,7 @@ The build and compile processes are non-blocking, allowing TouchDesigner to run 
 8. **Install Plugin**:
    This will install a completed plugin in the global plugins folder located in `Documents/Derivative/Plugins` for use in other projects.
 
-[Usage Walkthrough Video](https://youtu.be/1kj_V__-NJg)
+   [Usage Video Link](https://youtu.be/1kj_V__-NJg)
 
 ## Visual Studio workflow debugging plugin loaded a custom operator in TD
 
@@ -64,7 +64,7 @@ The build and compile processes are non-blocking, allowing TouchDesigner to run 
 5. **Debug**:
    In the `Select Startup Item` dropdown menu at the top of the Visual Studio editor select `Launch {YourToeName}.toe`. Now click `Launch {YourToeName}.toe` to start TD attached to the Visual Studio Debugger, with the path to `{YourToeName}.toe` passed as an argument.
 
-[VS Workflow Video](https://youtu.be/f8rl4IRgeLo)
+   [VS Workflow Video Link](https://youtu.be/f8rl4IRgeLo)
 
 ## Visual Studio Notes
 
