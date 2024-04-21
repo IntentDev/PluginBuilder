@@ -49,17 +49,17 @@ The build and compile processes are non-blocking, allowing TouchDesigner to run 
 8. **Install Plugin**:
    This will install a completed plugin in the global plugins folder located in `Documents/Derivative/Plugins` for use in other projects.
 
-## Visual Studio workflow debugging a plugin loaded as a custom operator in TD
+## Visual Studio workflow debugging plugin loaded a custom operator in TD
 
-1. **Create PluginBuilder Project**
+1. **Create PluginBuilder Project**:
    Follow steps 1 through 4 in **Usage** above and toggle off the `Compile On Update` parameter. Save the `{YourToeName}.toe`.
-2. **Load Plugin**
+2. **Load Plugin**:
    Restart the .toe so the new plugin shows up in the Op Create Dialog and load the custom operator in your network. Optionally disable cooking on PluginBuilder. Save and close `{YourToeName}.toe`.
-3. **Open Visual Studio**
+3. **Open Visual Studio**:
    Either right click in the the Plugin Project directory for your plugin and select Open with Visual Studio or open Visual Studio and select Open CMake project and navigate to the plugin project directory and open it.
-4. **Edit and compile**
+4. **Edit and compile**:
    Edit and compile as required in Visual Studio
-5. **Debug**
+5. **Debug**:
    In the `Select Startup Item` dropdown menu at the top of the Visual Studio editor select `Launch {YourToeName}.toe`. Now click `Launch {YourToeName}.toe` to start TD attached to the Visual Studio Debugger, with the path to `{YourToeName}.toe` passed as an argument.
 
 ## Visual Studio Notes
