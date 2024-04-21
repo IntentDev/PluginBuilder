@@ -58,22 +58,23 @@ set(INCLUDE_DIR "${PLUGIN_BUILDER_DIR}/include")
 message(STATUS "INCLUDE_DIR: ${INCLUDE_DIR}")
 
 # Collect all source files and exclude gtest files.
-file(GLOB_RECURSE PROJ_SOURCE_FILES "${SOURCE_DIR}/*.cpp" "${SOURCE_DIR}/*.c" "${SOURCE_DIR}/*.cu" "${SOURCE_DIR}/*.h")
+file(GLOB_RECURSE PROJ_SOURCE_FILES 
+"${SOURCE_DIR}/*.cpp" "${SOURCE_DIR}/*.c" "${SOURCE_DIR}/*.cu" "${SOURCE_DIR}/*.h" "${SOURCE_DIR}/*.cuh")
 
 add_library(__PLUGIN_NAME__ SHARED ${PROJ_SOURCE_FILES})
 target_include_directories(__PLUGIN_NAME__ PRIVATE ${SOURCE_DIR} ${INCLUDE_DIR})
 
-
-if(NOT DEFINED ENV{PLUGINBUILDER_BUILD})
-  message(STATUS "PluginBuilder in not building __PLUGIN_NAME__")
+if(DEFINED ENV{PLUGINBUILDER_BUILD})
+  message(STATUS "PluginBuilder is building __PLUGIN_NAME__")
+else()  
   if(MSVC)
-    target_compile_options(__PLUGIN_NAME__ PUBLIC "/ZI")
+    target_compile_options(__PLUGIN_NAME__ PUBLIC "/Zi")
     target_link_options(__PLUGIN_NAME__ PUBLIC "/INCREMENTAL")
   endif()
 
   add_custom_command(TARGET __PLUGIN_NAME__ POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      $<TARGET_FILE:__PLUGIN_NAME__> "${PLUGIN_DIR}")
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    $<TARGET_FILE:__PLUGIN_NAME__> "${PLUGIN_DIR}")
 endif()
 '''
 
