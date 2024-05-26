@@ -34,3 +34,6 @@
 dev/Backup
 dev/PluginProjects
 dev/Plugins
+
+!3rdParty/Python/lib/x64/*.lib
+!3rdParty/OpenCV/lib/Win64/*.lib
