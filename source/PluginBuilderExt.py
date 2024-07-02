@@ -98,6 +98,8 @@ class PluginBuilderExt:
 		self.loader_op = self.ownerComp.op('plugin_loader')
 		run("args[0].RefreshDats()", self.ownerComp, delayFrames=120)
 
+		self.open_attempts = 0
+
 
 	def __del__(self):
 		"""Destructor that calls the close_subprocess method."""
@@ -418,7 +420,7 @@ class PluginBuilderExt:
 
 	def file_locked(self, filepath):
 		try:
-			with open(filepath, 'ab', buffering=0):
+			with open(filepath, 'rb', buffering=0):
 				pass
 		except PermissionError:
 			return True  # The file is locked
@@ -501,11 +503,21 @@ class PluginBuilderExt:
 			print(f"File {build_path} does not exist.")
 			return
 		
-		# if self.file_locked(build_path):
-		# 	for r in runs:
-		# 		r.kill()
-		# 	run("args[0].OnPluginUpdate()", self.ownerComp, delayFrames=1)
-		# 	return
+		if self.file_locked(build_path):
+			if self.open_attempts < 20:
+				for r in runs:
+					if r.group == 'copy_dll':
+						r.kill()
+				self.open_attempts += 1
+				print(f"File {build_path} is locked. Attempting to copy again in 5 frames.")
+				run("args[0].OnPluginUpdate()", self.ownerComp, group='copy_dll', delayFrames=5)
+				return
+			else:
+				print(f"File {build_path} is locked. Could not copy.")
+				self.open_attempts = 0
+				return
+		
+		self.open_attempts = 0
 		
 		if not os.path.exists(self.plugin_dir):
 			os.makedirs(self.plugin_dir)
