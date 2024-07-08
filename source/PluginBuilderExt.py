@@ -88,7 +88,7 @@ class PluginBuilderExt:
 		}
 
 		self.plugin_projects_dir = 'PluginProjects'
-		self.plugins_dir = 'Plugins'
+		self.plugins_dir = '__Plugins__'
 
 		self.process = None
 		self.queue = None
@@ -424,6 +424,8 @@ class PluginBuilderExt:
 				pass
 		except PermissionError:
 			return True  # The file is locked
+		except FileNotFoundError:
+			return False  # The file does not exist
 		return False
 	
 	############## External Methods ###############################################################
@@ -503,7 +505,7 @@ class PluginBuilderExt:
 			print(f"File {build_path} does not exist.")
 			return
 		
-		if self.file_locked(build_path):
+		if self.file_locked(build_path) or self.file_locked(plugin_path):
 			if self.open_attempts < 20:
 				for r in runs:
 					if r.group == 'copy_dll':

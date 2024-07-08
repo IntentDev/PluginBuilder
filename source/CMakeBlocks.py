@@ -43,7 +43,7 @@ project (__PLUGIN_NAME__ LANGUAGES CXX CUDA)
 
 core_block = '''
 set(PLUGIN_BUILDER_DIR __PLUGIN_BUILDER_DIR__ CACHE PATH "Path to PluginBuilder directory" FORCE)
-set(PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../Plugins/__PLUGIN_NAME__")
+set(PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../__Plugins__/__PLUGIN_NAME__")
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
 
 set(PRINT_SOURCE_FILES On)
